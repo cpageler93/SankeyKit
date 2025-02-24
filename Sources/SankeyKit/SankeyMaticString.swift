@@ -32,8 +32,7 @@ extension SankeyMaticString: SankeyInitializable {
             let value = try FlowValue(stringValue: String(valueString))
 
             // Add flow
-            let flow = Flow(source: sourceNodeID, target: targetNodeID, value: value)
-            result.flows.append(flow)
+            result.addFlow(from: sourceNodeID, value: value, to: targetNodeID)
         }
         return result
     }

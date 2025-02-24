@@ -15,8 +15,8 @@ extension Sankey {
         let b = sankey.addNodeIfNeeded(title: "B")
         let c = sankey.addNodeIfNeeded(title: "C")
 
-        sankey.addFlow(from: a, to: b, value: .double(1))
-        sankey.addFlow(from: a, to: c, value: .double(1))
+        sankey.addFlow(from: a, value: 1, to: b)
+        sankey.addFlow(from: a, value: 1, to: c)
 
         return sankey
     }
@@ -45,6 +45,10 @@ extension Sankey {
 
     #expect(sankey.startingNodeIDs().count == 1)
     #expect(sankey.startingNodeIDs()[0] == sankey.nodeID(title: "A"))
+
+    #expect(sankey.isStartingNode(nodeID: sankey.nodeID(title: "A")!) == true)
+    #expect(sankey.isStartingNode(nodeID: sankey.nodeID(title: "B")!) == false)
+    #expect(sankey.isStartingNode(nodeID: sankey.nodeID(title: "C")!) == false)
 }
 
 @Test func flowsSourceNodeID() {
@@ -110,19 +114,19 @@ extension Sankey {
     let bar1 = sankey.addNodeIfNeeded(title: "bar1")
     let barStar = sankey.addNodeIfNeeded(title: "barStar")
 
-    sankey.addFlow(from: a, to: b, value: .double(2))
-    sankey.addFlow(from: a, to: c, value: .unsourcedAmoutFromTarget)
+    sankey.addFlow(from: a, value: 2, to: b)
+    sankey.addFlow(from: a, value: .unsourcedAmoutFromTarget, to: c)
 
-    sankey.addFlow(from: b, to: x, value: .double(1))
-    sankey.addFlow(from: b, to: y, value: .unusedRemainderFromSource)
+    sankey.addFlow(from: b, value: 1, to: x)
+    sankey.addFlow(from: b, value: .unusedRemainderFromSource, to: y)
 
-    sankey.addFlow(from: c, to: foo, value: .double(2))
-    sankey.addFlow(from: c, to: bar, value: .double(2))
+    sankey.addFlow(from: c, value: 2, to: foo)
+    sankey.addFlow(from: c, value: 2, to: bar)
 
-    sankey.addFlow(from: foo, to: fooOne, value: .double(1))
+    sankey.addFlow(from: foo, value: 1, to: fooOne)
 
-    sankey.addFlow(from: bar, to: bar1, value: .double(1))
-    sankey.addFlow(from: bar, to: barStar, value: .unusedRemainderFromSource)
+    sankey.addFlow(from: bar, value: 1, to: bar1)
+    sankey.addFlow(from: bar, value: .unusedRemainderFromSource, to: barStar)
 
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "A")!) == 6)
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "B")!) == 2)
@@ -151,14 +155,106 @@ extension Sankey {
     let one = sankey.addNodeIfNeeded(title: "1")
     let two = sankey.addNodeIfNeeded(title: "2")
 
-    sankey.addFlow(from: a, to: one, value: .double(2))
-    sankey.addFlow(from: a, to: two, value: .double(2))
-    sankey.addFlow(from: b, to: one, value: .double(2))
-    sankey.addFlow(from: c, to: two, value: .double(2))
+    sankey.addFlow(from: a, value: 2, to: one)
+    sankey.addFlow(from: a, value: 2, to: two)
+    sankey.addFlow(from: b, value: 2, to: one)
+    sankey.addFlow(from: c, value: 2, to: two)
 
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "A")!) == 4)
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "B")!) == 2)
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "C")!) == 2)
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "1")!) == 4)
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "2")!) == 4)
+}
+
+
+//a [2] 1
+//a [2] 2
+//b [2] 1
+//c [2] 2
+//1 [1] x
+//1 [3] y
+//y [1] i
+//y [1] j
+//y [1] k
+@Test func stages() {
+    var sankey = Sankey()
+    let a = sankey.addNodeIfNeeded(title: "A")
+    let b = sankey.addNodeIfNeeded(title: "B")
+    let c = sankey.addNodeIfNeeded(title: "C")
+    let one = sankey.addNodeIfNeeded(title: "1")
+    let two = sankey.addNodeIfNeeded(title: "2")
+    let x = sankey.addNodeIfNeeded(title: "X")
+    let y = sankey.addNodeIfNeeded(title: "Y")
+    let i = sankey.addNodeIfNeeded(title: "I")
+    let j = sankey.addNodeIfNeeded(title: "J")
+    let k = sankey.addNodeIfNeeded(title: "K")
+
+    sankey.addFlow(from: a, value: 2, to: one)
+    sankey.addFlow(from: a, value: 2, to: two)
+    sankey.addFlow(from: b, value: 2, to: one)
+    sankey.addFlow(from: c, value: 2, to: two)
+    sankey.addFlow(from: one, value: 1, to: x)
+    sankey.addFlow(from: one, value: 3, to: y)
+    sankey.addFlow(from: y, value: 1, to: i)
+    sankey.addFlow(from: y, value: 1, to: j)
+    sankey.addFlow(from: y, value: 1, to: k)
+
+    let stages = sankey.stages
+    #expect(stages.count == 4)
+    #expect(stages[0].nodeIDs.count == 3)
+    #expect(stages[0].nodeIDs[0] == a)
+    #expect(stages[0].nodeIDs[1] == b)
+    #expect(stages[0].nodeIDs[2] == c)
+
+    #expect(stages[1].nodeIDs.count == 2)
+    #expect(stages[1].nodeIDs[0] == one)
+    #expect(stages[1].nodeIDs[1] == two)
+
+    #expect(stages[2].nodeIDs.count == 2)
+    #expect(stages[2].nodeIDs[0] == x)
+    #expect(stages[2].nodeIDs[1] == y)
+
+    #expect(stages[3].nodeIDs.count == 3)
+    #expect(stages[3].nodeIDs[0] == i)
+    #expect(stages[3].nodeIDs[1] == j)
+    #expect(stages[3].nodeIDs[2] == k)
+}
+
+//a [2] 1
+//a [2] 2
+//b [2] 1
+//c [2] 2
+//1 [1] x
+//1 [3] y
+//y [1] i
+//y [1] j
+//y [1] k
+@Test func sumOfValuesForStage() {
+    var sankey = Sankey()
+    let a = sankey.addNodeIfNeeded(title: "A")
+    let b = sankey.addNodeIfNeeded(title: "B")
+    let c = sankey.addNodeIfNeeded(title: "C")
+    let one = sankey.addNodeIfNeeded(title: "1")
+    let two = sankey.addNodeIfNeeded(title: "2")
+    let x = sankey.addNodeIfNeeded(title: "X")
+    let y = sankey.addNodeIfNeeded(title: "Y")
+    let i = sankey.addNodeIfNeeded(title: "I")
+    let j = sankey.addNodeIfNeeded(title: "J")
+    let k = sankey.addNodeIfNeeded(title: "K")
+
+    sankey.addFlow(from: a, value: 2, to: one)
+    sankey.addFlow(from: a, value: 2, to: two)
+    sankey.addFlow(from: b, value: 2, to: one)
+    sankey.addFlow(from: c, value: 2, to: two)
+    sankey.addFlow(from: one, value: 1, to: x)
+    sankey.addFlow(from: one, value: 3, to: y)
+    sankey.addFlow(from: y, value: 1, to: i)
+    sankey.addFlow(from: y, value: 1, to: j)
+    sankey.addFlow(from: y, value: 1, to: k)
+
+    #expect(sankey.valueForStage(stage: sankey.stages[0]) == 8)
+    #expect(sankey.valueForStage(stage: sankey.stages[1]) == 8)
+    #expect(sankey.valueForStage(stage: sankey.stages[2]) == 4)
+    #expect(sankey.valueForStage(stage: sankey.stages[3]) == 3)
 }

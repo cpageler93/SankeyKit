@@ -5,9 +5,13 @@
 //  Created by Christoph Pageler on 22.02.25.
 //
 
-public struct Sankey {
-    public var nodes: [Node] = []
-    public var flows: [Flow] = []
+public struct Sankey: Equatable {
+    public private(set) var nodes: [Node] = []
+    public private(set) var flows: [Flow] = []
+
+    public private(set) var stages: [NodeStage] = []
+
+    // MARK: - Nodes
 
     /// Checks if node with title exists or creates new one with title
     /// - Parameter title: Title of node
@@ -19,6 +23,7 @@ public struct Sankey {
         } else {
             let newNode = Node(id: .init(), title: title)
             nodes.append(newNode)
+            updateNodeStages()
             return newNode.id
         }
     }
@@ -33,31 +38,46 @@ public struct Sankey {
         nodes.first(where: { $0.title == title })?.id
     }
 
-    public mutating func addFlow(from: Node.ID, to: Node.ID, value: FlowValue) {
+    // MARK: - Flows
+
+    /// Adds a from from node `from` to `to` with given flow value `value`
+    public mutating func addFlow(from: Node.ID, value: FlowValue, to: Node.ID) {
         let flow = Flow(source: from, target: to, value: value)
         flows.append(flow)
+        updateNodeStages()
     }
 
-    /// - Returns: Node IDs for nodes that doesn't have any target
+    /// - Returns: All starting node ids
     public func startingNodeIDs() -> [Node.ID] {
         nodes
             .map { $0.id }
             .filter { nodeID in
-                flows
-                    .filter { flow in flow.target == nodeID }
-                    .isEmpty
+                isStartingNode(nodeID: nodeID)
             }
     }
 
+    /// - Returns: True if given node id is a starting node
+    public func isStartingNode(nodeID: Node.ID) -> Bool {
+        flows
+            .filter { flow in flow.target == nodeID }
+            .isEmpty
+    }
+
+    /// - Returns: All flows where source node is `sourceNodeID`
     public func flows(sourceNodeID: Node.ID) -> [Flow] {
         flows.filter { $0.source == sourceNodeID }
     }
 
+    /// - Returns: All flows where target node is `targetNodeID`
     public func flows(targetNodeID: Node.ID) -> [Flow] {
         flows.filter { $0.target == targetNodeID }
     }
 
+    // MARK: - Values
 
+    /// Calculates value for node
+    /// - Parameter nodeID: node id
+    /// - Returns: Value for the given node id
     public func valueForNode(id nodeID: Node.ID) -> Double {
         let sourceValue = sourceValueForNode(id: nodeID)
         let targetValue = targetValueForNode(id: nodeID)
@@ -72,7 +92,7 @@ public struct Sankey {
         flows(targetNodeID: nodeID).map { resolveValue(for: nodeID, in: $0) }.reduce(0, +)
     }
 
-    public func resolveValue(for nodeID: Node.ID, in flow: Flow) -> Double {
+    private func resolveValue(for nodeID: Node.ID, in flow: Flow) -> Double {
         switch flow.value {
         case let .double(double):
             return double
@@ -98,5 +118,51 @@ public struct Sankey {
                 return 0
             }
         }
+    }
+
+    // MARK: - Stages
+
+    private mutating func updateNodeStages() {
+        var result: [NodeStage] = []
+        for node in nodes {
+            let stage = stageIndexFor(nodeID: node.id)
+            if let index = result.firstIndex(where: { $0.index == stage }) {
+                var existingStage = result[index]
+                existingStage.nodeIDs.append(node.id)
+                result[index] = existingStage
+            } else {
+                let newStage = NodeStage(index: stage, nodeIDs: [node.id])
+                result.append(newStage)
+            }
+        }
+        stages = result
+    }
+
+    /// Calculates stage for node
+    /// - Parameter nodeID: node
+    /// - Returns: stage for given node id
+    private func stageIndexFor(nodeID: Node.ID) -> Int {
+        // Starting nodes are on stage 0
+        if isStartingNode(nodeID: nodeID) {
+            return 0
+        }
+        // Iterate over all flows of the node and sum up stages
+        let flows = flows(targetNodeID: nodeID)
+        let maxStageFromSource = flows.map { stageIndexFor(nodeID: $0.source) }.max() ?? 0
+        return maxStageFromSource + 1
+    }
+
+    public func findNodeStage(for node: Node.ID) -> NodeStage? {
+        stages.first(where: { $0.nodeIDs.contains(node)} )
+    }
+
+    public func valueForStage(stage: NodeStage) -> Double {
+        stage.nodeIDs
+            .map { valueForNode(id: $0) }
+            .reduce(0.0, +)
+    }
+
+    public func maximumValueForStages() -> Double? {
+        stages.map { valueForStage(stage: $0) }.max()
     }
 }

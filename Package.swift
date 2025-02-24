@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SankeyKit",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v14),
         .iOS(.v16)
     ],
     products: [

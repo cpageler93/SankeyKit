@@ -26,6 +26,18 @@ public enum FlowValue: Equatable {
     }
 }
 
+extension FlowValue: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: FloatLiteralType) {
+        self = .double(value)
+    }
+}
+
+extension FlowValue: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: IntegerLiteralType) {
+        self = .double(Double(value))
+    }
+}
+
 struct FlowValueError: Error {
     var message: String
 }

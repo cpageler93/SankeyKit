@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Node: Identifiable {
+public struct Node: Identifiable, Equatable {
     public var id: UUID
     public var title: String
 }
