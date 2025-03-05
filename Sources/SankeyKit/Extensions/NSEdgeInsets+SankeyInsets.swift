@@ -1,15 +1,15 @@
 //
-//  UIEdgeInsets+SankeyInsets.swift
+//  NSEdgeInsets+SankeyInsets.swift
 //  SankeyKit
 //
 //  Created by Christoph Pageler on 25.02.25.
 //
 
-#if canImport(UIKit)
+#if os(macOS)
 
-import UIKit
+import Foundation
 
-extension UIEdgeInsets {
+extension NSEdgeInsets {
     init(sankeyInsets: SankeyInsets) {
         self.init(
             top: sankeyInsets.top,

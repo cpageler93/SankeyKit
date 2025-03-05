@@ -2,6 +2,8 @@
 
 SankeyKit is a Swift package for creating Sankey diagrams. It allows easy creation of nodes, adding flows, and initializing from a SankeyMatic string representation.
 
+<img src="preview.png" alt="Preview" width="250"/>
+
 ## Installation
 
 SankeyKit can be installed via Swift Package Manager (SPM).
@@ -49,6 +51,22 @@ Gross Profit [350] Operating Profit
 
 Operating Profit [90] Tax
 Operating Profit [260] Net Profit
+
+// Profit - blue
+:Gross Profit #48e <<
+:Operating Profit #48e <<
+:Net Profit #48e <<
+
+// Expenses - rust
+:Tax #d97 <<
+:Selling, General & Administration #d97 <<
+:Amortization #d97 <<
+
+// Cost - gray
+:Cost of Sales #bbb <<
+
+// main Revenue node: dark grey
+:Revenue #555
 """ as SankeyMaticString
 
 let sankey = try string.initSankey()

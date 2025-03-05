@@ -11,10 +11,12 @@ public struct SankeySettings: Codable {
     public var axis: SankeyAxis = .horizontal
 
     public var insets: SankeyInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0)
-    public var nodeWidth: Double = 30
 
-    /// Node height in %
-    public var nodeHeight: Double = 1
+    /// Thickness of node in pt. Can be width or height, depending on `axix`
+    public var nodeThickness: Double = 30
+
+    /// Scale of node in %, affects height or width, depending on `axis`
+    public var nodeScale: Double = 1
 
     /// Node spacing in %
     public var nodeSpacing: Double = 0
