@@ -5,7 +5,9 @@
 //  Created by Christoph Pageler on 22.02.25.
 //
 
-public struct Sankey: Equatable {
+import SwiftUI
+
+public struct Sankey: Equatable, Hashable {
     public private(set) var nodes: [Node] = []
     public private(set) var flows: [Flow] = []
 
@@ -38,13 +40,25 @@ public struct Sankey: Equatable {
         nodes.first(where: { $0.title == title })?.id
     }
 
+    public mutating func setNodeColor(nodeID: Node.ID, color: Color) {
+        guard let index = nodes.firstIndex(where: { $0.id == nodeID }) else { return }
+        nodes[index].color = color
+    }
+
     // MARK: - Flows
 
     /// Adds a from from node `from` to `to` with given flow value `value`
-    public mutating func addFlow(from: Node.ID, value: FlowValue, to: Node.ID) {
-        let flow = Flow(source: from, target: to, value: value)
+    @discardableResult
+    public mutating func addFlow(from: Node.ID, value: FlowValue, to: Node.ID, color: Color? = nil) -> Flow {
+        let flow = Flow(id: .init(), source: from, target: to, value: value, color: color)
         flows.append(flow)
         updateNodeStages()
+        return flow
+    }
+
+    public mutating func setFlowColor(flowID: Flow.ID, color: Color) {
+        guard let index = flows.firstIndex(where: { $0.id == flowID }) else { return }
+        flows[index].color = color
     }
 
     /// - Returns: All starting node ids
@@ -82,6 +96,17 @@ public struct Sankey: Equatable {
         let sourceValue = sourceValueForNode(id: nodeID)
         let targetValue = targetValueForNode(id: nodeID)
         return max(sourceValue, targetValue)
+    }
+
+    public func valueForFlow(flow: Flow) -> Double {
+        switch flow.value {
+        case let .double(double):
+            return double
+        case .unusedRemainderFromSource:
+            return resolveValue(for: flow.target, in: flow)
+        case .unsourcedAmoutFromTarget:
+            return resolveValue(for: flow.source, in: flow)
+        }
     }
 
     private func sourceValueForNode(id nodeID: Node.ID) -> Double {

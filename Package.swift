@@ -7,7 +7,7 @@ let package = Package(
     name: "SankeyKit",
     platforms: [
         .macOS(.v14),
-        .iOS(.v16)
+        .iOS(.v17)
     ],
     products: [
         .library(

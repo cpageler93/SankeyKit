@@ -8,7 +8,7 @@
 import Testing
 @testable import SankeyKit
 
-@Test func initFromString() async throws {
+@Test func initFromString() throws {
     #expect(try FlowValue(stringValue: "*") == .unusedRemainderFromSource)
     #expect(try FlowValue(stringValue: "?") == .unsourcedAmoutFromTarget)
     #expect(try FlowValue(stringValue: "1") == 1)

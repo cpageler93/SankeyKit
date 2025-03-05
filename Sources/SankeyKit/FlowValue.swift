@@ -5,7 +5,7 @@
 //  Created by Christoph Pageler on 22.02.25.
 //
 
-public enum FlowValue: Equatable {
+public enum FlowValue: Equatable, Hashable {
     case double(Double)
     case unusedRemainderFromSource
     case unsourcedAmoutFromTarget

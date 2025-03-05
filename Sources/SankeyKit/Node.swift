@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import SwiftUI
 
-public struct Node: Identifiable, Equatable {
+public struct Node: Identifiable, Equatable, Hashable {
     public var id: UUID
     public var title: String
+    public var color: Color?
 }

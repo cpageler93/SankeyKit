@@ -143,6 +143,61 @@ extension Sankey {
     #expect(sankey.valueForNode(id: sankey.nodeID(title: "barStar")!) == 1)
 }
 
+//a [2] b
+//a [?] c
+//
+//b [1] x
+//b [*] y
+//
+//c [2] foo
+//c [2] bar
+//
+//foo [1] fooone
+//
+//bar [1] bar1
+//bar [*] barstar
+@Test func valueForFlowWithFlowValueCalculation() {
+    var sankey = Sankey()
+    let a = sankey.addNodeIfNeeded(title: "A")
+    let b = sankey.addNodeIfNeeded(title: "B")
+    let c = sankey.addNodeIfNeeded(title: "C")
+
+    let x = sankey.addNodeIfNeeded(title: "X")
+    let y = sankey.addNodeIfNeeded(title: "Y")
+
+    let foo = sankey.addNodeIfNeeded(title: "foo")
+    let bar = sankey.addNodeIfNeeded(title: "bar")
+
+    let fooOne = sankey.addNodeIfNeeded(title: "fooOne")
+
+    let bar1 = sankey.addNodeIfNeeded(title: "bar1")
+    let barStar = sankey.addNodeIfNeeded(title: "barStar")
+
+    let flowAToB = sankey.addFlow(from: a, value: 2, to: b)
+    let flowAToC = sankey.addFlow(from: a, value: .unsourcedAmoutFromTarget, to: c)
+
+    let flowBToX = sankey.addFlow(from: b, value: 1, to: x)
+    let flowBToY = sankey.addFlow(from: b, value: .unusedRemainderFromSource, to: y)
+
+    let flowCToFoo = sankey.addFlow(from: c, value: 2, to: foo)
+    let flowCToBar = sankey.addFlow(from: c, value: 2, to: bar)
+
+    let flowFooToFooOne = sankey.addFlow(from: foo, value: 1, to: fooOne)
+
+    let flowBarToBar1 = sankey.addFlow(from: bar, value: 1, to: bar1)
+    let flowBarToBarStar = sankey.addFlow(from: bar, value: .unusedRemainderFromSource, to: barStar)
+
+    #expect(sankey.valueForFlow(flow: flowAToB) == 2)
+    #expect(sankey.valueForFlow(flow: flowAToC) == 4)
+    #expect(sankey.valueForFlow(flow: flowBToX) == 1)
+    #expect(sankey.valueForFlow(flow: flowBToY) == 1)
+    #expect(sankey.valueForFlow(flow: flowCToFoo) == 2)
+    #expect(sankey.valueForFlow(flow: flowCToBar) == 2)
+    #expect(sankey.valueForFlow(flow: flowFooToFooOne) == 1)
+    #expect(sankey.valueForFlow(flow: flowBarToBar1) == 1)
+    #expect(sankey.valueForFlow(flow: flowBarToBarStar) == 1)
+}
+
 //a [2] 1
 //a [2] 2
 //b [2] 1
