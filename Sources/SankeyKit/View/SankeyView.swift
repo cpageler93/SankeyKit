@@ -147,7 +147,7 @@ private enum PreviewSankey: CaseIterable, Identifiable {
                     nodeThickness: nodeThickness,
                     nodeScale: nodeScale,
                     nodeSpacing: nodeSpacing,
-//                    nodeColors: SankeyMaticTheme.categories,
+                    nodeColors: SankeyMaticTheme.categories,
                     flowOpacity: flowOpacity,
                     flowCurviness: flowCurviness
                 )

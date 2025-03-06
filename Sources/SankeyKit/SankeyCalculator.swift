@@ -35,8 +35,8 @@ class SankeyCalculator {
         calculateNodeRects()
         calculateNodeSpacing()
         applyNodeSpacing()
-//        calculateNodeHeightCenter()
-//
+        calculateStageCenterPosition()
+
         calculateFlowPoints()
         calculateFlowPointsCurviness()
     }
@@ -44,6 +44,39 @@ class SankeyCalculator {
     private func calculateNodeRects() {
         for node in sankey.nodes {
             calculateNodeRect(nodeID: node.id)
+        }
+    }
+
+    private func calculateStageCenterPosition() {
+        for stage in sankey.stages {
+            var stageSize = stage.nodeIDs
+                .compactMap { nodeRects[$0] }
+                .map { $0.size }
+                .reduce(CGSize.zero) { partialResult, size in
+                    var result = partialResult
+                    result.width += size.width
+                    result.height += size.height
+                    return result
+                }
+            let stageNodeSpacing = nodeSpacing * Double(stage.nodeIDs.count - 1)
+            stageSize.height += stageNodeSpacing
+            stageSize.width += stageNodeSpacing
+
+            let offset = CGSize(
+                width: ((drawingRect.size.width) - stageSize.width) / 2,
+                height: ((drawingRect.size.height) - stageSize.height) / 2
+            )
+
+            for nodeId in stage.nodeIDs {
+                guard var nodeRect = nodeRects[nodeId] else { continue }
+                switch settings.axis {
+                case .horizontal:
+                    nodeRect.origin.y += offset.height
+                case .vertical:
+                    nodeRect.origin.x += offset.width
+                }
+                nodeRects[nodeId] = nodeRect
+            }
         }
     }
 
