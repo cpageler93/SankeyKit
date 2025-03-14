@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 #if canImport(UIKit)
 
 import UIKit
@@ -136,6 +135,8 @@ private enum PreviewSankey: CaseIterable, Identifiable {
     @Previewable @State var nodeSpacing: Double = 0
     @Previewable @State var flowOpacity: Double = 0.45
     @Previewable @State var flowCurviness: Double = 0.5
+    @Previewable @State var nodeCornerRadius: Double = 10
+    @Previewable @State var flowInsets: Double = 0
 
     Form {
         Section {
@@ -149,7 +150,19 @@ private enum PreviewSankey: CaseIterable, Identifiable {
                     nodeSpacing: nodeSpacing,
                     nodeColors: SankeyMaticTheme.categories,
                     flowOpacity: flowOpacity,
-                    flowCurviness: flowCurviness
+                    flowCurviness: flowCurviness,
+                    nodeCornerRadius: .init(
+                        topLeft: nodeCornerRadius,
+                        topRight: nodeCornerRadius,
+                        bottomRight: nodeCornerRadius,
+                        bottomLeft: nodeCornerRadius
+                    ),
+                    flowInsets: .init(
+                        top: flowInsets,
+                        leading: flowInsets,
+                        bottom: flowInsets,
+                        trailing: flowInsets
+                    )
                 )
             )
             .aspectRatio(aspectRatio, contentMode: .fit)
@@ -176,6 +189,8 @@ private enum PreviewSankey: CaseIterable, Identifiable {
             PreviewSlider(value: $nodeSpacing, range: 0...1, step: 0.01, title: "Node Spacing")
             PreviewSlider(value: $flowOpacity, range: 0...1, step: 0.01, title: "Flow Opacity")
             PreviewSlider(value: $flowCurviness, range: 0...1, step: 0.01, title: "Flow Curviness")
+            PreviewSlider(value: $nodeCornerRadius, range: 0...15, step: 1, title: "Node Corner Radius")
+            PreviewSlider(value: $flowInsets, range: 0...15, step: 0.5, title: "Flow Insets")
         }
     }
     #if os(macOS)

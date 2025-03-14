@@ -5,11 +5,11 @@
 //  Created by Christoph Pageler on 25.02.25.
 //
 
-import CoreGraphics
-
 public struct SankeyInsets: Codable {
-    public var top: CGFloat
-    public var leading: CGFloat
-    public var bottom: CGFloat
-    public var trailing: CGFloat
+    public var top: Double
+    public var leading: Double
+    public var bottom: Double
+    public var trailing: Double
+
+    static var zero: Self { .init(top: 0, leading: 0, bottom: 0, trailing: 0) }
 }

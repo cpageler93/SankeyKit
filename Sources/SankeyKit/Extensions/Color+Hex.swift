@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-#if os(macOS)
-typealias NativeColor = NSColor
-#else
-typealias NativeColor = UIColor
-#endif
-
 extension Color {
     var hexString: String {
         var red: CGFloat = 0

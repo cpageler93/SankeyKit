@@ -29,7 +29,7 @@ import SankeyKit
 var sankey = Sankey()
 let a = sankey.addNodeIfNeeded(title: "A")
 let b = sankey.addNodeIfNeeded(title: "B")
-sankey.addFlow(from: a, to: b, value: .double(2))
+sankey.addFlow(from: a, value: 2, to: b)
 ```
 
 ### Initializing from a SankeyMatic String Representation

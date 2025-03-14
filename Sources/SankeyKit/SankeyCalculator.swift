@@ -38,6 +38,7 @@ class SankeyCalculator {
         calculateStageCenterPosition()
 
         calculateFlowPoints()
+        calculateFlowPointsInsets()
         calculateFlowPointsCurviness()
     }
 
@@ -240,45 +241,75 @@ class SankeyCalculator {
         let result: FlowPoints
         switch settings.axis {
         case .horizontal:
-            result = FlowPoints(points: [
-                .init(point: sourceRect.topRight.moving(y: sourceFlowOffset.height)),
-                .init(point: targetRect.topLeft.moving(y: targetFlowOffset.height)),
-                .init(point: targetRect.topLeft.moving(y: flowHeight).moving(y: targetFlowOffset.height)),
-                .init(point: sourceRect.topRight.moving(y: flowHeight).moving(y: sourceFlowOffset.height))
-            ])
+            // Horizontal flow starts at the top right point of the source rect, clockwise
+            result = FlowPoints(
+                firstSourcePoint: .topLeft(sourceRect.topRight.moving(y: sourceFlowOffset.height)),
+                firstTargetPoint: .topRight(targetRect.topLeft.moving(y: targetFlowOffset.height)),
+                secondTargetPoint: .bottomRight(targetRect.topLeft.moving(y: flowHeight).moving(y: targetFlowOffset.height)),
+                secondSourcePoint: .bottomLeft(sourceRect.topRight.moving(y: flowHeight).moving(y: sourceFlowOffset.height))
+            )
         case .vertical:
-            result = FlowPoints(points: [
-                .init(point: sourceRect.bottomLeft.moving(x: sourceFlowOffset.width)),
-                .init(point: targetRect.topLeft.moving(x: targetFlowOffset.width)),
-                .init(point: targetRect.topLeft.moving(x: flowWidth).moving(x: targetFlowOffset.width)),
-                .init(point: sourceRect.bottomLeft.moving(x: flowWidth).moving(x: sourceFlowOffset.width))
-            ])
+            // Vertical flow starts at the bottom left point of the source rect, counter clockwise
+            result = FlowPoints(
+                firstSourcePoint: .topLeft(sourceRect.bottomLeft.moving(x: sourceFlowOffset.width)),
+                firstTargetPoint: .bottomLeft(targetRect.topLeft.moving(x: targetFlowOffset.width)),
+                secondTargetPoint: .bottomRight(targetRect.topLeft.moving(x: flowWidth).moving(x: targetFlowOffset.width)),
+                secondSourcePoint: .topRight(sourceRect.bottomLeft.moving(x: flowWidth).moving(x: sourceFlowOffset.width))
+            )
         }
         flowPoints[flow.id] = result
         return result
     }
 
-    private func calculateFlowPointsCurviness() {
+    private func calculateFlowPointsInsets() {
         for (flowID, flowPoints) in flowPoints {
-            guard flowPoints.points.count == 4 else { continue }
-
             var flowPoints = flowPoints
 
-            // calculate curviness for line from source to target
-            let curveToPoint1 = calculateCurvedPoint(
-                from: flowPoints.points[0],
-                to: flowPoints.points[1],
-                curviness: settings.flowCurviness
-            )
-            flowPoints.points[1] = curveToPoint1
+            func move(flowPoint: inout FlowPoint) {
+                switch flowPoint.position {
+                case .topLeft:
+                    flowPoint.point.x += settings.flowInsets.leading
+                    flowPoint.point.y += settings.flowInsets.top
+                case .topRight:
+                    flowPoint.point.x -= settings.flowInsets.trailing
+                    flowPoint.point.y += settings.flowInsets.top
+                case .bottomRight:
+                    flowPoint.point.x -= settings.flowInsets.trailing
+                    flowPoint.point.y -= settings.flowInsets.bottom
+                case .bottomLeft:
+                    flowPoint.point.x += settings.flowInsets.leading
+                    flowPoint.point.y -= settings.flowInsets.bottom
+                }
+            }
 
-            // calculate curviness for line back from target to source
-            let curveToPoint3 = calculateCurvedPoint(
-                from: flowPoints.points[2],
-                to: flowPoints.points[3],
+            move(flowPoint: &flowPoints.firstSourcePoint)
+            move(flowPoint: &flowPoints.firstTargetPoint)
+            move(flowPoint: &flowPoints.secondTargetPoint)
+            move(flowPoint: &flowPoints.secondSourcePoint)
+
+            self.flowPoints[flowID] = flowPoints
+        }
+    }
+
+    private func calculateFlowPointsCurviness() {
+        for (flowID, flowPoints) in flowPoints {
+            var flowPoints = flowPoints
+
+            // calculate curviness for line from first source to first target
+            let curveToFirstTargetPoint = calculateCurvedPoint(
+                from: flowPoints.firstSourcePoint,
+                to: flowPoints.firstTargetPoint,
                 curviness: settings.flowCurviness
             )
-            flowPoints.points[3] = curveToPoint3
+            flowPoints.firstTargetPoint = curveToFirstTargetPoint
+
+            // calculate curviness for line back from second target to second source
+            let curveToSecondSourcePoint = calculateCurvedPoint(
+                from: flowPoints.secondTargetPoint,
+                to: flowPoints.secondSourcePoint,
+                curviness: settings.flowCurviness
+            )
+            flowPoints.secondSourcePoint = curveToSecondSourcePoint
 
             self.flowPoints[flowID] = flowPoints
         }

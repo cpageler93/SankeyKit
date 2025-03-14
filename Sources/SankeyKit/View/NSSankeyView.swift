@@ -46,33 +46,25 @@ public class NSSankeyView: NSView {
                 guard let nodeIndex = sankey.nodes.firstIndex(of: node) else { continue }
                 guard let nodeRect = calculator.nodeRects[nodeID] else { continue }
 
-                let nodeFillColor = node.color.map { NSColor($0) }
-                let settingsColor = Color(hex: settings.nodeColors[nodeIndex % settings.nodeColors.count])
-                    .map { NSColor($0) }
-                let defaultColor = NSColor.gray
-                let fillColor = nodeFillColor ?? settingsColor ?? defaultColor
-
-                let path = NSBezierPath(rect: nodeRect)
-                let shapeLayer = CAShapeLayer()
-                shapeLayer.path = path.cgPath
-                shapeLayer.fillColor = fillColor.cgColor
-                shapeLayer.lineWidth = 1
-                layer?.addSublayer(shapeLayer)
+                let nodeLayer = NodeLayer(
+                    node: node,
+                    rect: nodeRect,
+                    index: nodeIndex,
+                    settings: settings
+                )
+                layer?.addSublayer(nodeLayer)
             }
         }
 
         for flow in sankey.flows {
             guard let flowPoints = calculator.flowPoints[flow.id] else { continue }
 
-            let fillColor = (flow.color.map { NSColor($0) } ?? NSColor.gray)
-                .withAlphaComponent(settings.flowOpacity)
-                .cgColor
-            let path = flowPoints.path(using: NSBezierPath.self)
-            let shapeLayer = CAShapeLayer()
-            shapeLayer.path = path.cgPath
-            shapeLayer.fillColor = fillColor
-            shapeLayer.lineWidth = 1
-            layer?.addSublayer(shapeLayer)
+            let flowLayer = FlowLayer(
+                flow: flow,
+                flowPoints: flowPoints,
+                settings: settings
+            )
+            layer?.addSublayer(flowLayer)
         }
     }
 }
